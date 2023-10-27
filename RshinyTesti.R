@@ -208,11 +208,15 @@ server <- function(input, output) {
   # Graphique à secteurs des taux de disponibilité
   output$pie_chart <- renderPlotly({
     availability_data <- data.frame(
-      Category = c("bike_stands", "available_bike_stands", "available_bikes"),
-      Value = c(sum(data$bike_stands), sum(data$available_bike_stands), sum(data$available_bikes))
+      Category = c("Nombre de supports à vélo", "Vélos disponibles", "Nombre de supports vides"),
+      Value = c(sum(data$bike_stands), sum(data$available_bikes), sum(data$bike_stands - data$available_bikes))
     )
+    
     p <- plot_ly(availability_data, labels = ~Category, values = ~Value, type = "pie") %>%
-      layout(title = "Taux de Disponibilité par Catégorie")
+      layout(title = "Taux de Disponibilité par Catégorie", showlegend = TRUE) %>%
+      layout(pie = list(textinfo = "label+percent")) %>%
+      add_trace(textfont = list(color = "white"))  # Définir la couleur du texte en blanc
+    
     p
   })
 }
