@@ -5,7 +5,7 @@ if (!require(shiny)) {
 if (!require(leaflet)) {
   install.packages("leaflet")
 }
-if (!require(httr)) {
+if (! require(httr)) {
   install.packages("httr")
 }
 if (!require(jsonlite)) {
@@ -22,6 +22,9 @@ if (!require(leaflet.extras)) {
 }
 if (!require(ggplot2)) {
   install.packages("ggplot2")
+}
+if (!require(tidygeocoder)) {
+  install.packages("tidygeocoder")
 }
 
 # Charger les données depuis l'API JCDecaux
@@ -45,6 +48,17 @@ library(shinydashboard)
 library(plotly)
 library(leaflet.extras)
 library(ggplot2)
+library(tidygeocoder)
+
+# Filtre codes postaux
+donnees_geocode <- data[, c("position.lat", "position.lng")]
+codes_postaux <- character(0)
+
+# Effectuez le géocodage inverse pour obtenir le code postal
+resultat_geocode <- reverse_geocode(donnees_geocode, lat = position.lat, long = position.lng, method = 'osm', address = NULL, full_results = TRUE)
+code_postal <- resultat_geocode$postcode
+
+data$code_postal <- code_postal
 
 ui <- dashboardPage(
   dashboardHeader(title = "Velov's Dashboard"),
@@ -92,14 +106,18 @@ ui <- dashboardPage(
                 plotlyOutput("top_stations_chart", width = "100%")
               )
       ),
-      tabItem("raw_data", 
+      tabItem("raw_data",
               fluidRow(
                 column(12, tableOutput("raw_data_table"))
               )
       ),
-      tabItem("map", 
+      tabItem("map",
               fluidRow(
                 column(12, leafletOutput("map"))
+              ),
+              fluidRow(
+                column(12, selectInput("filter_postcode", "Filtrer par code postal:", sort(unique(data$code_postal)))
+                )
               )
       ),
       tabItem("dashboard_stats",
@@ -145,7 +163,8 @@ server <- function(input, output) {
   
   # Créez une carte Leaflet automatique
   output$map <- renderLeaflet({
-    leaflet(data) %>%
+    filtered_map_data <- data[data$code_postal == input$filter_postcode, ]
+    leaflet(filtered_map_data) %>%
       addTiles() %>%
       addFullscreenControl(position = "topright", pseudoFullscreen = TRUE) %>%
       addCircleMarkers(
