@@ -113,13 +113,13 @@ ui <- dashboardPage(
       ),
       tabItem("map",
               fluidRow(
-                column(12, leafletOutput("map"))
-              ),
-              fluidRow(
-                column(12, selectInput("filter_postcode", "Filtrer par code postal:", sort(unique(data$code_postal)))
-                )
-              )
-      ),
+    column(12, leafletOutput("map"))
+  ),
+  fluidRow(
+    column(12, selectInput("filter_postcode", "Filtrer par code postal:", c("Tous", sort(unique(data$code_postal))))
+    )
+  )
+),
       tabItem("dashboard_stats",
               fluidRow(
                 valueBox(
@@ -163,7 +163,14 @@ server <- function(input, output) {
   
   # Créez une carte Leaflet automatique
   output$map <- renderLeaflet({
-    filtered_map_data <- data[data$code_postal == input$filter_postcode, ]
+    if (input$filter_postcode == "Tous") {
+      # Si "Tous" est sélectionné, n'appliquez aucun filtre, utilisez l'ensemble des données.
+      filtered_map_data <- data
+    } else {
+      # Sinon, filtrez les données en fonction de l'option sélectionnée.
+      filtered_map_data <- data[data$code_postal == input$filter_postcode, ]
+    }
+    
     leaflet(filtered_map_data) %>%
       addTiles() %>%
       addFullscreenControl(position = "topright", pseudoFullscreen = TRUE) %>%
