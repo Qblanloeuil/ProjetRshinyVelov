@@ -1,4 +1,4 @@
-# Installer les packages si nécessaire
+# Installer les packages si nÃ©cessaire
 if (!require(shiny)) {
   install.packages("shiny")
 }
@@ -30,17 +30,17 @@ if (!require(webshot)) {
   install.packages("webshot")
 }
 
-# Charger les données depuis l'API JCDecaux
+# Charger les donnÃ©es depuis l'API JCDecaux
 base <- httr::GET("https://api.jcdecaux.com/vls/v1/stations?contract=Lyon&apiKey=8d2b71ec0cc951c380e6bb5da02b76a32f6f8559")
 data <- jsonlite::fromJSON(httr::content(base, "text"), flatten = TRUE)
 
-# Calcul du Taux de Déséquilibre entre Supports et Vélos
+# Calcul du Taux de DÃ©sÃ©quilibre entre Supports et VÃ©los
 taux_desequilibre <- ((sum(data$bike_stands) - sum(data$available_bikes)) / sum(data$bike_stands)) * 100
 
-# Calcul de l'Indice de Disponibilité des Stations de Vélos (IDSV)
+# Calcul de l'Indice de DisponibilitÃ© des Stations de VÃ©los (IDSV)
 IDSV <- ((sum(data$available_bike_stands) + sum(data$available_bikes)) / (sum(data$bike_stands) + sum(data$available_bikes))) * 100
 
-# Création de la boîte à moustaches
+# CrÃ©ation de la boÃ®te Ã  moustaches
 boxplot_data <- ((data$available_bike_stands / data$bike_stands) * 100)
 
 library(shiny)
@@ -58,18 +58,18 @@ library(webshot)
 donnees_geocode <- data[, c("position.lat", "position.lng")]
 codes_postaux <- character(0)
 
-# Effectuez le géocodage inverse pour obtenir le code postal
+# Effectuez le gÃ©ocodage inverse pour obtenir le code postal
 resultat_geocode <- reverse_geocode(donnees_geocode, lat = position.lat, long = position.lng, method = 'osm', address = NULL, full_results = TRUE)
 code_postal <- resultat_geocode$postcode
 
 data$code_postal <- code_postal
 
-# Ajoutez une variable réactive pour stocker le titre du graphique en fonction du critère sélectionné
+# Ajoutez une variable rÃ©active pour stocker le titre du graphique en fonction du critÃ¨re sÃ©lectionnÃ©
 selected_criteria_text <- reactive({
   switch(input$sort_criteria,
-         "available_bikes" = "Top 10 des stations en fonction du nombre de vélos",
-         "bike_stands" = "Top 10 des stations en fonction du nombre de supports à vélo",
-         "available_bike_stands" = "Top 10 des stations en fonction des vélos disponibles"
+         "available_bikes" = "Top 10 des stations en fonction du nombre de vÃ©los",
+         "bike_stands" = "Top 10 des stations en fonction du nombre de supports Ã  vÃ©lo",
+         "available_bike_stands" = "Top 10 des stations en fonction des vÃ©los disponibles"
   )
 })
 
@@ -80,7 +80,7 @@ ui <- dashboardPage(
       menuItem("Tableau de bord", tabName = "dashboard", icon = icon("dashboard")),
       menuItem("Carte Leaflet", tabName = "map", icon = icon("map")),
       menuItem("Tableau de bord avec Statistiques", tabName = "dashboard_stats", icon = icon("dashboard")),
-      menuItem("Tableau de données brutes", tabName = "raw_data", icon = icon("table")),
+      menuItem("Tableau de donnÃ©es brutes", tabName = "raw_data", icon = icon("table")),
       # Ajouter un nouvel onglet d'exportation PNG
       menuItem("Exporter PNG", tabName = "export_png", icon = icon("file-image"))
     )
@@ -98,8 +98,8 @@ ui <- dashboardPage(
                 valueBoxOutput("value_box_total_stations")
               ),
               fluidRow(
-                selectInput("sort_criteria", "Trier par critère :",
-                            choices = c("Nombre de velos disponible" = "available_bikes", "Nombre de supports � v�lo" = "bike_stands", "nombre de supports � Velos disponibles" = "available_bike_stands"),
+                selectInput("sort_criteria", "Trier par critÃ¨re :",
+                            choices = c("Nombre de velos disponible" = "available_bikes", "Nombre de supports à vélo" = "bike_stands", "nombre de supports à Velos disponibles" = "available_bike_stands"),
                             selected = "available_bikes"
                 )
               ),
@@ -136,31 +136,31 @@ ui <- dashboardPage(
       # Nouvel onglet d'exportation PNG
       tabItem("export_png",
               fluidRow(
-                downloadButton("export_pie_chart_button", "Exporter en PNG", type = "image/png"),  # Spécifiez le type comme "image/png"
-                actionButton("refresh_button", "Rafraîchir les données")
+                downloadButton("export_pie_chart_button", "Exporter en PNG", type = "image/png"),  # SpÃ©cifiez le type comme "image/png"
+                actionButton("refresh_button", "RafraÃ®chir les donnÃ©es")
               )
       )
     )
   )
 )
 server <- function(input, output) {
-  # Fonction pour mettre à jour les données lorsque le bouton "Rafraîchir les données" est cliqué
+  # Fonction pour mettre Ã  jour les donnÃ©es lorsque le bouton "RafraÃ®chir les donnÃ©es" est cliquÃ©
   observeEvent(input$refresh_button, {
     refresh_data()
   })
   
-  # Afficher les données brutes dans un tableau
+  # Afficher les donnÃ©es brutes dans un tableau
   output$raw_data_table <- renderTable({
     data
   })
   
-  # Créez une carte Leaflet automatique
+  # CrÃ©ez une carte Leaflet automatique
   output$map <- renderLeaflet({
     if (input$filter_postcode_map == "Tous") {
-      # Si "Tous" est sélectionné, n'appliquez aucun filtre, utilisez l'ensemble des données.
+      # Si "Tous" est sÃ©lectionnÃ©, n'appliquez aucun filtre, utilisez l'ensemble des donnÃ©es.
       filtered_map_data <- data
     } else {
-      # Sinon, filtrez les données en fonction de l'option sélectionnée.
+      # Sinon, filtrez les donnÃ©es en fonction de l'option sÃ©lectionnÃ©e.
       filtered_map_data <- data[data$code_postal == input$filter_postcode_map, ]
     }
     
@@ -170,13 +170,13 @@ server <- function(input, output) {
       addCircleMarkers(
         lng = ~position.lng, lat = ~position.lat,
         popup = ~paste("<strong>Nom de la station:</strong> ", "<strong>", name, "</strong>", "<br>",
-                       " supports � velo disponible: ", available_bike_stands, "<br>",
+                       " supports à velo disponible: ", available_bike_stands, "<br>",
                        " velo disponible : ", available_bikes),
         clusterOptions = markerClusterOptions()
       )
   })
   
-  # Fonction pour filtrer les données en fonction du critère de tri
+  # Fonction pour filtrer les donnÃ©es en fonction du critÃ¨re de tri
   filtered_data_dashboard <- reactive({
     criteria <- input$sort_criteria
     sorted_data <- data[order(-data[[criteria]]), ]
@@ -192,18 +192,18 @@ server <- function(input, output) {
     p
   })
   
-  # Graphique à secteurs des taux de disponibilité dans l'onglet "Tableau de bord avec statistiques"
+  # Graphique Ã  secteurs des taux de disponibilitÃ© dans l'onglet "Tableau de bord avec statistiques"
   output$pie_chart <- renderPlotly({
     filtered_data_stats <- data
     if (input$filter_postcode_stats != "Tous") {
       filtered_data_stats <- data[data$code_postal == input$filter_postcode_stats, ]
     }
     availability_data <- data.frame(
-      Category = c("Vélos disponibles", "Nombre de supports vides"),
+      Category = c("VÃ©los disponibles", "Nombre de supports vides"),
       Value = c(sum(filtered_data_stats$available_bikes), sum(filtered_data_stats$bike_stands - filtered_data_stats$available_bikes))
     )
     p <- plot_ly(availability_data, labels = ~Category, values = ~Value, type = "pie") %>%
-      layout(title = "Taux de Disponibilité par Catégorie", showlegend = TRUE) %>%
+      layout(title = "Taux de DisponibilitÃ© par CatÃ©gorie", showlegend = TRUE) %>%
       layout(pie = list(textinfo = "label+percent")) %>%
       add_trace(textfont = list(color = "white"))
     p
@@ -219,7 +219,7 @@ server <- function(input, output) {
     value <- sum(filtered_data$available_bikes)
     valueBox(
       value = value,
-      subtitle = "Nombre de Vélos Disponibles",
+      subtitle = "Nombre de VÃ©los Disponibles",
       icon = icon("bicycle"),
       color = "blue",
       width = 4
@@ -235,7 +235,7 @@ server <- function(input, output) {
     value <- sum(filtered_data$bike_stands)
     valueBox(
       value = value,
-      subtitle = "Nombre Total de Vélos",
+      subtitle = "Nombre Total de VÃ©los",
       icon = icon("bicycle"),
       color = "purple",
       width = 4
@@ -277,7 +277,7 @@ server <- function(input, output) {
   output$value_box_indice_disponibilite <- renderValueBox({
     valueBox(
       value = round(IDSV, 2),
-      subtitle = "Indice de Disponibilité",
+      subtitle = "Indice de DisponibilitÃ©",
       icon = icon("check-circle"),
       color = "blue",
       width = 4
@@ -287,32 +287,32 @@ server <- function(input, output) {
   output$value_box_taux_desequilibre <- renderValueBox({
     valueBox(
       value = round(taux_desequilibre, 2),
-      subtitle = "Taux de Déséquilibre",
+      subtitle = "Taux de DÃ©sÃ©quilibre",
       icon = icon("warning"),
       color = "red",
       width = 4
     )
   })
   
-  # Nouvelle fonction pour exporter le graphique à secteurs en tant qu'image PNG
+  # Nouvelle fonction pour exporter le graphique Ã  secteurs en tant qu'image PNG
   output$export_pie_chart_button <- downloadHandler(
     filename = function() {
       "exported_pie_chart.png"  # Nom du fichier de sortie en PNG
     },
     content = function(file) {
-      # Créez le graphique à secteurs avec plotly
-      p <- plot_ly(data = data.frame(Category = c("Vélos disponibles", "Nombre de supports vides"),
+      # CrÃ©ez le graphique Ã  secteurs avec plotly
+      p <- plot_ly(data = data.frame(Category = c("VÃ©los disponibles", "Nombre de supports vides"),
                                      Value = c(sum(data$available_bikes), sum(data$bike_stands - data$available_bikes))),
                    labels = ~Category, values = ~Value, type = "pie") %>%
-        layout(title = "Taux de Disponibilité par Catégorie", showlegend = TRUE) %>%
+        layout(title = "Taux de DisponibilitÃ© par CatÃ©gorie", showlegend = TRUE) %>%
         layout(pie = list(textinfo = "label+percent"))
       
       # Sauvegardez le graphique en tant qu'image PNG
       png(file, width = 1200, height = 600)  # Ajustez la largeur et la hauteur selon vos besoins
-      p <- plot_ly(data = data.frame(Category = c("Vélos disponibles", "Nombre de supports vides"),
+      p <- plot_ly(data = data.frame(Category = c("VÃ©los disponibles", "Nombre de supports vides"),
                                      Value = c(sum(data$available_bikes), sum(data$bike_stands - data$available_bikes))),
                    labels = ~Category, values = ~Value, type = "pie") %>%
-        layout(title = "Taux de Disponibilité par Catégorie", showlegend = TRUE) %>%
+        layout(title = "Taux de DisponibilitÃ© par CatÃ©gorie", showlegend = TRUE) %>%
         layout(pie = list(textinfo = "label+percent"))
       print(p)
       dev.off()
